@@ -4,8 +4,16 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: FeaturedProducts
+// GraphQL fragment: FeaturedProducts
 // ====================================================
+
+export interface FeaturedProducts_collection_backgroundImage {
+  __typename: "Image";
+  /**
+   * The URL of the image.
+   */
+  url: string;
+}
 
 export interface FeaturedProducts_collection_products_edges_node_thumbnail {
   __typename: "Image";
@@ -226,6 +234,7 @@ export interface FeaturedProducts_collection_products_edges_node {
    * The ID of the object.
    */
   id: string;
+  slug: string;
   name: string;
   /**
    * The main thumbnail for a product.
@@ -257,7 +266,12 @@ export interface FeaturedProducts_collection_products {
 
 export interface FeaturedProducts_collection {
   __typename: "Collection";
+  /**
+   * The ID of the object.
+   */
+  id: string;
   name: string;
+  backgroundImage: FeaturedProducts_collection_backgroundImage | null;
   /**
    * List of products in this collection.
    */
@@ -265,12 +279,9 @@ export interface FeaturedProducts_collection {
 }
 
 export interface FeaturedProducts {
+  __typename: "Query";
   /**
    * Look up a collection by ID.
    */
   collection: FeaturedProducts_collection | null;
-}
-
-export interface FeaturedProductsVariables {
-  channel?: string | null;
 }

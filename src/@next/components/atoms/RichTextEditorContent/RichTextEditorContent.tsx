@@ -70,5 +70,5 @@ export const RichTextEditorContent: React.FC<RichTextEditorContentProps> = ({
     return editor.current?.destroy;
   }, [jsonData]);
 
-  return jsonData ? <S.Content ref={editorContainer} /> : null;
+  return <S.Content ref={editorContainer} />;
 };

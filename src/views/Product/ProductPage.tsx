@@ -1,27 +1,23 @@
 import { useCart } from "@saleor/sdk";
-import { isEmpty } from "lodash";
+import { ProductDetails } from "@saleor/sdk/lib/fragments/gqlTypes/ProductDetails";
 import { NextPage } from "next";
 import { useRouter } from "next/router";
 import queryString from "query-string";
 import React, { useEffect, useState } from "react";
 
 import { Loader, OfflinePlaceholder } from "@components/atoms";
-import { channelSlug } from "@temp/constants";
 
 import { MetaWrapper, NotFound } from "../../components";
 import NetworkStatus from "../../components/NetworkStatus";
-import { getGraphqlIdFromDBId } from "../../core/utils";
-import { ProductDetails_product } from "./gqlTypes/ProductDetails";
 import Page from "./Page";
-import { TypedProductDetailsQuery } from "./queries";
 import { IProps } from "./types";
 
 import "./scss/index.scss";
 
-const canDisplay = (product?: ProductDetails_product) =>
+const canDisplay = (product?: ProductDetails) =>
   !!product?.name && !!product?.pricing && !!product?.variants;
 
-const extractMeta = (product: ProductDetails_product, url: string) => ({
+const extractMeta = (product: ProductDetails, url: string) => ({
   custom: [
     {
       content: product.pricing?.priceRange?.start?.gross.amount.toString(),
@@ -49,7 +45,7 @@ const extractMeta = (product: ProductDetails_product, url: string) => ({
 
 const PageWithQueryAttributes: React.FC<IProps> = props => {
   const { product } = props;
-  const { pathname, push, query, replace, asPath } = useRouter();
+  const { pathname, push, query, asPath } = useRouter();
 
   const onAttributeChangeHandler = (slug: string | null, value: string) => {
     const newAsPath = queryString.stringifyUrl(
@@ -61,7 +57,7 @@ const PageWithQueryAttributes: React.FC<IProps> = props => {
   const [queryAttributes, setQueryAttributes] = useState({});
 
   useEffect(() => {
-    if (!isEmpty(query)) {
+    if (!Object.keys(query).length) {
       const queryAttributes: Record<string, string> = {};
       product.variants.forEach(({ attributes }) => {
         attributes.forEach(({ attribute, values }) => {
@@ -71,7 +67,7 @@ const PageWithQueryAttributes: React.FC<IProps> = props => {
             values[0].value === selectedAttributeValue
           ) {
             if (
-              isEmpty(queryAttributes) ||
+              !Object.keys(queryAttributes).length ||
               !attributes.filter(
                 ({ attribute: { id }, values }) =>
                   queryAttributes[id] && queryAttributes[id] !== values[0].value
@@ -82,14 +78,10 @@ const PageWithQueryAttributes: React.FC<IProps> = props => {
           }
         });
       });
+
       setQueryAttributes(queryAttributes);
     }
   }, [product.variants.length]);
-
-  useEffect(() => {
-    const { url } = queryString.parseUrl(asPath);
-    replace({ pathname, query }, url);
-  }, [queryAttributes]);
 
   return (
     <Page
@@ -100,61 +92,40 @@ const PageWithQueryAttributes: React.FC<IProps> = props => {
   );
 };
 
-export type ViewProps = {
-  query: { slug: string; id: string };
+export type ProductPageProps = {
+  params: { slug: string } | undefined;
+  data: ProductDetails | undefined | null;
 };
 
-const View: NextPage<ViewProps> = ({ query: { id } }) => {
+export const ProductPage: NextPage<ProductPageProps> = ({ data: product }) => {
   const { addItem, items } = useCart();
   const { asPath } = useRouter();
 
   return (
-    <TypedProductDetailsQuery
-      loaderFull
-      variables={{
-        channel: channelSlug,
-        id: getGraphqlIdFromDBId(id, "Product"),
+    <NetworkStatus>
+      {isOnline => {
+        if (canDisplay(product)) {
+          return (
+            <MetaWrapper
+              meta={extractMeta(product, queryString.parseUrl(asPath).url)}
+            >
+              <PageWithQueryAttributes
+                product={product}
+                add={addItem}
+                items={items}
+              />
+            </MetaWrapper>
+          );
+        }
+
+        if (!product) {
+          return product === null ? <NotFound /> : <Loader fullScreen />;
+        }
+
+        if (!isOnline) {
+          return <OfflinePlaceholder />;
+        }
       }}
-      errorPolicy="all"
-      key={id}
-    >
-      {({ data, loading }) => (
-        <NetworkStatus>
-          {isOnline => {
-            const { product } = data;
-
-            if (canDisplay(product)) {
-              return (
-                <MetaWrapper
-                  meta={extractMeta(product, queryString.parseUrl(asPath).url)}
-                >
-                  <PageWithQueryAttributes
-                    product={product}
-                    add={addItem}
-                    items={items}
-                  />
-                </MetaWrapper>
-              );
-            }
-
-            if (loading) {
-              return <Loader />;
-            }
-
-            if (product === null) {
-              return <NotFound />;
-            }
-
-            if (!isOnline) {
-              return <OfflinePlaceholder />;
-            }
-
-            return <NotFound />;
-          }}
-        </NetworkStatus>
-      )}
-    </TypedProductDetailsQuery>
+    </NetworkStatus>
   );
 };
-
-export default View;

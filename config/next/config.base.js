@@ -5,7 +5,13 @@ const path = require("path");
 module.exports = (nextConfig = {}, { nextComposePlugins, phase }) => ({
   ...nextConfig,
 
+  env: {
+    ...nextConfig.env,
+    NEXT_EXPORT: process.env.NEXT_EXPORT,
+  },
+
   trailingSlash: true,
+  productionBrowserSourceMaps: true,
 
   webpack: (config, options) => {
     const { isServer, dev } = options;
@@ -17,36 +23,22 @@ module.exports = (nextConfig = {}, { nextComposePlugins, phase }) => ({
       module: "empty",
     };
 
-    config.module.rules = [
-      !isServer && {
-        exclude: /node_modules/,
-        loader: "ts-loader",
-        options: {
-          experimentalWatchApi: true,
-          transpileOnly: true,
-        },
-        test: /\.tsx?$/,
-      },
-      ...config.module.rules,
-      {
-        test: /\.svg$/,
-        use: [
-          {
-            loader: "file-loader",
-            options: {
-              name: "[name].[ext]",
-              publicPath: "/_next/static/images/",
-              outputPath: "static/images/",
-            },
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: [
+        {
+          loader: "file-loader",
+          options: {
+            name: "[name].[ext]",
+            publicPath: "/_next/static/images/",
+            outputPath: "static/images/",
           },
-        ],
-      },
-    ].filter(Boolean);
+        },
+      ],
+    });
 
-    config.plugins = [
-      ...config.plugins,
-
-      !isServer &&
+    if (!isServer) {
+      config.plugins.push(
         new ForkTsCheckerWebpackPlugin({
           typescript: {
             mode: "write-references",
@@ -55,8 +47,9 @@ module.exports = (nextConfig = {}, { nextComposePlugins, phase }) => ({
             files: "./src/**/*.{ts,tsx}",
             exclude: "node_modules",
           },
-        }),
-    ].filter(Boolean);
+        })
+      );
+    }
 
     config.resolve = {
       alias: {

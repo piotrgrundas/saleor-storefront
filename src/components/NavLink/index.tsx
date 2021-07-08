@@ -1,11 +1,9 @@
 import Link from "next/link";
 import * as React from "react";
+import { generatePath } from "react-router";
 
-import {
-  generateCategoryUrl,
-  generateCollectionUrl,
-  generatePageUrl,
-} from "../../core/utils";
+import { paths } from "@paths";
+
 import {
   SecondaryMenu_menu_items,
   SecondaryMenu_menu_items_children,
@@ -36,13 +34,13 @@ export const NavLink: React.FC<NavLinkProps> = ({ item, ...props }) => {
     );
   }
   if (category) {
-    return link(generateCategoryUrl(category.id, category.name));
+    return link(generatePath(paths.category, { slug: category.slug }));
   }
   if (collection) {
-    return link(generateCollectionUrl(collection.id, collection.name));
+    return link(generatePath(paths.collection, { slug: collection.slug }));
   }
   if (page) {
-    return link(generatePageUrl(page.slug));
+    return link(generatePath(paths.page, { slug: page.slug }));
   }
 
   return <span {...props}>{name}</span>;

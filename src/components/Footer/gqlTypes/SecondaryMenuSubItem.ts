@@ -14,6 +14,7 @@ export interface SecondaryMenuSubItem_category {
    */
   id: string;
   name: string;
+  slug: string;
 }
 
 export interface SecondaryMenuSubItem_collection {
@@ -23,6 +24,7 @@ export interface SecondaryMenuSubItem_collection {
    */
   id: string;
   name: string;
+  slug: string;
 }
 
 export interface SecondaryMenuSubItem_page {

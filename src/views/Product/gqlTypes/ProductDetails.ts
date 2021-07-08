@@ -423,6 +423,7 @@ export interface ProductDetails_product_category_products_edges_node {
    * The ID of the object.
    */
   id: string;
+  slug: string;
   name: string;
   /**
    * The main thumbnail for a product.
@@ -690,6 +691,7 @@ export interface ProductDetails_product {
    * The ID of the object.
    */
   id: string;
+  slug: string;
   name: string;
   /**
    * The main thumbnail for a product.

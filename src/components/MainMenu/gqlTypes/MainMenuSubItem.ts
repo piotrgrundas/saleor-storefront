@@ -14,6 +14,7 @@ export interface MainMenuSubItem_category {
    */
   id: string;
   name: string;
+  slug: string;
 }
 
 export interface MainMenuSubItem_collection {
@@ -23,6 +24,7 @@ export interface MainMenuSubItem_collection {
    */
   id: string;
   name: string;
+  slug: string;
 }
 
 export interface MainMenuSubItem_page {
